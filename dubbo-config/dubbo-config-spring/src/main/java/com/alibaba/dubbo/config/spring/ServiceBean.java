@@ -75,9 +75,15 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         return SPRING_CONTEXT;
     }
 
+    /**
+     * 因为 实现ApplicationContextAware接口， 所以在加载bean的时候会调用该方法
+     * @param applicationContext
+     */
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
+        // 将applicationContext缓存起来
         SpringExtensionFactory.addApplicationContext(applicationContext);
+        // 下面主要是兼容老版本spring的Listener的处理
         if (applicationContext != null) {
             SPRING_CONTEXT = applicationContext;
             try {
@@ -113,15 +119,24 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         return service;
     }
 
+    /**
+     * 服务发布
+     *
+     * @param event
+     */
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (isDelay() && !isExported() && !isUnexported()) {
             if (logger.isInfoEnabled()) {
                 logger.info("The service ready on spring started. service: " + getInterface());
             }
-            export();
+            export(); // 在系统启动完成后暴露服务
         }
     }
 
+    /**
+     *
+     * @return
+     */
     private boolean isDelay() {
         Integer delay = getDelay();
         ProviderConfig provider = getProvider();
@@ -131,6 +146,10 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         return supportedApplicationListener && (delay == null || delay == -1);
     }
 
+    /**
+     * 实现于InitializingBean
+     * @throws Exception
+     */
     @SuppressWarnings({"unchecked", "deprecation"})
     public void afterPropertiesSet() throws Exception {
         if (getProvider() == null) {
@@ -166,12 +185,14 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         }
         if (getApplication() == null
                 && (getProvider() == null || getProvider().getApplication() == null)) {
+            // 在spring中查找ApplicationConfig
             Map<String, ApplicationConfig> applicationConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ApplicationConfig.class, false, false);
             if (applicationConfigMap != null && applicationConfigMap.size() > 0) {
                 ApplicationConfig applicationConfig = null;
                 for (ApplicationConfig config : applicationConfigMap.values()) {
                     if (config.isDefault() == null || config.isDefault().booleanValue()) {
                         if (applicationConfig != null) {
+                            // 也不能重复配置
                             throw new IllegalStateException("Duplicate application configs: " + applicationConfig + " and " + config);
                         }
                         applicationConfig = config;
@@ -184,6 +205,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         }
         if (getModule() == null
                 && (getProvider() == null || getProvider().getModule() == null)) {
+            // 在spring 中查找ModuleConfig
             Map<String, ModuleConfig> moduleConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ModuleConfig.class, false, false);
             if (moduleConfigMap != null && moduleConfigMap.size() > 0) {
                 ModuleConfig moduleConfig = null;
@@ -203,6 +225,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         if ((getRegistries() == null || getRegistries().isEmpty())
                 && (getProvider() == null || getProvider().getRegistries() == null || getProvider().getRegistries().isEmpty())
                 && (getApplication() == null || getApplication().getRegistries() == null || getApplication().getRegistries().isEmpty())) {
+            // spring 中查找注册中心的配置
             Map<String, RegistryConfig> registryConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, RegistryConfig.class, false, false);
             if (registryConfigMap != null && registryConfigMap.size() > 0) {
                 List<RegistryConfig> registryConfigs = new ArrayList<RegistryConfig>();
@@ -212,6 +235,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                     }
                 }
                 if (registryConfigs != null && !registryConfigs.isEmpty()) {
+                    // 注册中心可以有多个
                     super.setRegistries(registryConfigs);
                 }
             }
@@ -225,6 +249,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                 for (MonitorConfig config : monitorConfigMap.values()) {
                     if (config.isDefault() == null || config.isDefault().booleanValue()) {
                         if (monitorConfig != null) {
+                            // 监视器只能有一个
                             throw new IllegalStateException("Duplicate monitor configs: " + monitorConfig + " and " + config);
                         }
                         monitorConfig = config;
@@ -246,6 +271,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                     }
                 }
                 if (protocolConfigs != null && !protocolConfigs.isEmpty()) {
+                    // protocolConfigs 通信协议可以有多个
                     super.setProtocols(protocolConfigs);
                 }
             }
@@ -257,8 +283,11 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
                 setPath(beanName);
             }
         }
+        /**
+         * 没有延迟就会直接导出暴露，就算这里没暴露，onApplicationEvent中也会暴露
+         */
         if (!isDelay()) {
-            export();
+            export(); // 暴露服务
         }
     }
 

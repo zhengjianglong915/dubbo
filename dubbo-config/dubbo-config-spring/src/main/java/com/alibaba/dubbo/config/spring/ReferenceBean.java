@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 为了在spring启动的时候，也启动consumer发现服务的过程
  * ReferenceFactoryBean
  *
  * @export

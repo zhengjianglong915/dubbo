@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
+ * Dubbo 标签解析
  * AbstractBeanDefinitionParser
  *
  * @export
@@ -108,6 +109,9 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                 }
             }
         } else if (ServiceBean.class.equals(beanClass)) {
+            /**
+             * Service解析
+             */
             String className = element.getAttribute("class");
             if (className != null && className.length() > 0) {
                 RootBeanDefinition classDefinition = new RootBeanDefinition();

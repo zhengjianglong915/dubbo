@@ -80,14 +80,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     private static final ScheduledExecutorService delayExportExecutor = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DubboServiceDelayExporter", true));
     private final List<URL> urls = new ArrayList<URL>();
     private final List<Exporter<?>> exporters = new ArrayList<Exporter<?>>();
-    // interface type
+    // interface type  // 接口类型
     private String interfaceName;
     private Class<?> interfaceClass;
-    // reference to interface impl
+    // reference to interface impl 接口实现类引用
     private T ref;
-    // service name
+    // service name  服务名称
     private String path;
-    // method configuration
+    // method configuration 方法配置
     private List<MethodConfig> methods;
     private ProviderConfig provider;
     private transient volatile boolean exported;
@@ -192,6 +192,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         return unexported;
     }
 
+    /**
+     * 暴露服务
+     */
     public synchronized void export() {
         if (provider != null) {
             if (export == null) {
@@ -212,6 +215,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 }
             }, delay, TimeUnit.MILLISECONDS);
         } else {
+            // 真正执行 服务暴露
             doExport();
         }
     }
@@ -227,6 +231,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (interfaceName == null || interfaceName.length() == 0) {
             throw new IllegalStateException("<dubbo:service interface=\"\" /> interface not allow null!");
         }
+
+        /**
+         * 将调用 appendProperties 初始化provider
+         * 先通过System.getProperty找，如果没找到，再在属性配置文件找
+         */
         checkDefault();
         if (provider != null) {
             if (application == null) {
@@ -262,19 +271,28 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             }
         }
         if (ref instanceof GenericService) {
+            // 通用服务，提供动态性支持
             interfaceClass = GenericService.class;
             if (StringUtils.isEmpty(generic)) {
+                // 通用服务标识
                 generic = Boolean.TRUE.toString();
             }
         } else {
             try {
+                // 自定义服务
                 interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()
                         .getContextClassLoader());
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
-            checkInterfaceAndMethods(interfaceClass, methods);
-            checkRef();
+
+            /**
+             * 检查接口与方法的合法性
+             * 其中有个异常提示语错误：<dubbo:service interface=\"" + interfaceClass.getName() + "\" ... ><dubbo:method name=\"\" ... /></<**dubbo:reference**>
+             *  dubbo:reference应为dubbo:service
+             */
+            checkInterfaceAndMethods(interfaceClass, methods); // 接口和方法检查
+            checkRef(); // 检查引用
             generic = Boolean.FALSE.toString();
         }
         if (local != null) {
@@ -305,14 +323,24 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 throw new IllegalStateException("The stub implementation class " + stubClass.getName() + " not implement interface " + interfaceName);
             }
         }
-        checkApplication();
-        checkRegistry();
-        checkProtocol();
-        appendProperties(this);
+        checkApplication();  // application 不能为空
+        checkRegistry();  // 配置注册中心，至少有一个。方式同上
+        checkProtocol(); // 配置协议，名称默认dubbo，方式同上
+        appendProperties(this);  // 配置服务属性
+
+        /**
+         * 检查 local,stub是否存在，是否实现interfaceClass接口，是否有指定的构造函数
+         * 并检查是否mock,有两种方式:
+         *  1 return xxx;
+         *  2 指定 mock 类
+         */
         checkStubAndMock(interfaceClass);
         if (path == null || path.length() == 0) {
             path = interfaceName;
         }
+        /**
+         *  前面经过一堆检查后，在这里暴露服务
+         */
         doExportUrls();
         ProviderModel providerModel = new ProviderModel(getUniqueServiceName(), this, ref);
         ApplicationModel.initProviderModel(getUniqueServiceName(), providerModel);
@@ -330,6 +358,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         }
     }
 
+    /**
+     * 关闭服务
+     */
     public synchronized void unexport() {
         if (!exported) {
             return;
@@ -352,18 +383,30 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void doExportUrls() {
+        // 该方法根据配置文件装配成一个URL的list
         List<URL> registryURLs = loadRegistries(true);
+        // 根据每一个协议配置来分别暴露服务
         for (ProtocolConfig protocolConfig : protocols) {
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
 
+    /**
+     * 1. 构建url参数，存放在map
+     * 2. 根据内容和map构建 URL
+     *
+     * @param protocolConfig
+     * @param registryURLs
+     */
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
         String name = protocolConfig.getName();
         if (name == null || name.length() == 0) {
             name = "dubbo";
         }
 
+        /**
+         * map 是url参数
+         */
         Map<String, String> map = new HashMap<String, String>();
         map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);
         map.put(Constants.DUBBO_VERSION_KEY, Version.getVersion());
@@ -440,7 +483,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             if (revision != null && revision.length() > 0) {
                 map.put("revision", revision);
             }
-
+            /**
+             * 通过interfaceClass获取要暴露服务的所有要暴露的方法
+             */
             String[] methods = Wrapper.getWrapper(interfaceClass).getMethodNames();
             if (methods.length == 0) {
                 logger.warn("NO method found in service interface " + interfaceClass.getName());
@@ -468,6 +513,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
         String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = this.findConfigedPorts(protocolConfig, name, map);
+
+        /**
+         * 2. 根据上下文创建URL对象
+         */
         URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
 
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
@@ -481,10 +530,12 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (!Constants.SCOPE_NONE.toString().equalsIgnoreCase(scope)) {
 
             // export to local if the config is not remote (export to remote only when config is remote)
+            // 配置不是remote的情况下做本地暴露 (配置为remote，则表示只暴露远程服务)
             if (!Constants.SCOPE_REMOTE.toString().equalsIgnoreCase(scope)) {
                 exportLocal(url);
             }
             // export to remote if the config is not local (export to local only when config is local)
+            // 如果配置不是local则暴露为远程服务.(配置为local，则表示只暴露远程服务)
             if (!Constants.SCOPE_LOCAL.toString().equalsIgnoreCase(scope)) {
                 if (logger.isInfoEnabled()) {
                     logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
@@ -499,17 +550,24 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         if (logger.isInfoEnabled()) {
                             logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " to registry " + registryURL);
                         }
+                        // 通过代理工厂获得一个调用者
+                        // 关于proxyFactory实例，看下面的截图。默认SPI 名称为：javassist
                         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
+                        // 执行注册导出，这里使用了registry 协议
+                        // 通过类似上面的方式找到com.alibaba.dubbo.registry.integration.RegistryProtocol
+                        // ProtocolListenerWrapper -> ProtocolFilterWrapper ->RegistryProtocol
                         Exporter<?> exporter = protocol.export(wrapperInvoker);
                         exporters.add(exporter);
                     }
                 } else {
+                    // 通过proxyFactory来获取Invoker对象   默认使用JavassistProxyFactory
                     Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, url);
                     DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
-
+                    // 将invoker对象在protocol中封装成Exporter方便提供给信息交换层进行网络传输
                     Exporter<?> exporter = protocol.export(wrapperInvoker);
+                    // 将exporter添加到list中
                     exporters.add(exporter);
                 }
             }
