@@ -82,6 +82,10 @@ public class Main {
             }
 
             for (Container container : containers) {
+                /**
+                 * 启动各个container
+                 * dubbo的初始化也是在Container中完成的
+                 */
                 container.start();
                 logger.info("Dubbo " + container.getClass().getSimpleName() + " started!");
             }

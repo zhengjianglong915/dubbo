@@ -25,14 +25,21 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * AdaptiveExtensionFactory
+ * AdaptiveExtensionFactory 默认的工厂，Adaptive就表示模式工厂
  */
 @Adaptive
 public class AdaptiveExtensionFactory implements ExtensionFactory {
 
     private final List<ExtensionFactory> factories;
 
+    /**
+     * 其他工厂都没提供这个构造函数
+     */
     public AdaptiveExtensionFactory() {
+        /**
+         *  dubbo 内部默认实现的对象工厂是 SpiExtensionFactory 和 SpringExtensionFactory，
+         *  他们经过 TreeMap 排好序的查找顺序是优先先从 SpiExtensionFactory 获取
+         */
         ExtensionLoader<ExtensionFactory> loader = ExtensionLoader.getExtensionLoader(ExtensionFactory.class);
         List<ExtensionFactory> list = new ArrayList<ExtensionFactory>();
         for (String name : loader.getSupportedExtensions()) {
@@ -42,6 +49,10 @@ public class AdaptiveExtensionFactory implements ExtensionFactory {
     }
 
     public <T> T getExtension(Class<T> type, String name) {
+        /**
+         *  dubbo 内部默认实现的对象工厂是 SpiExtensionFactory 和 SpringExtensionFactory，
+         *  他们经过 TreeMap 排好序的查找顺序是优先先从 SpiExtensionFactory 获取
+         */
         for (ExtensionFactory factory : factories) {
             T extension = factory.getExtension(type, name);
             if (extension != null) {

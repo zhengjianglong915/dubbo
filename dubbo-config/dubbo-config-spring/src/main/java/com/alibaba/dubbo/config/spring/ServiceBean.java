@@ -120,6 +120,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
     }
 
     /**
+     * spring容器加载完成后，后通知调用这个方法。
      * 服务发布
      *
      * @param event

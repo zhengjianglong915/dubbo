@@ -24,6 +24,10 @@ public class Provider {
         //Prevent to get IPV6 address,this way only work in debug mode
         //But you can pass use -Djava.net.preferIPv4Stack=true,then it work well whether in debug mode or not
         System.setProperty("java.net.preferIPv4Stack", "true");
+        /**
+         * context 在启动完成的时候会调动refresh方法，会发布一个ContextRefreshedEvent事件。 通知ServiceBean完成发布工作
+         * 和ServiceConfig完成接口引入
+         */
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"META-INF/spring/dubbo-demo-provider.xml"});
         context.start();
 

@@ -42,6 +42,8 @@ public class SpringContainer implements Container {
         if (configPath == null || configPath.length() == 0) {
             configPath = DEFAULT_SPRING_CONFIG;
         }
+
+        // 启动整个容器， 完成了dubbo的初始化工作
         context = new ClassPathXmlApplicationContext(configPath.split("[,\\s]+"));
         context.start();
     }

@@ -45,6 +45,7 @@ public class ProtocolFilterWrapper implements Protocol {
 
     private static <T> Invoker<T> buildInvokerChain(final Invoker<T> invoker, String key, String group) {
         Invoker<T> last = invoker;
+        // 读取所有的filter
         List<Filter> filters = ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), key, group);
         if (!filters.isEmpty()) {
             for (int i = filters.size() - 1; i >= 0; i--) {
@@ -65,6 +66,9 @@ public class ProtocolFilterWrapper implements Protocol {
                     }
 
                     public Result invoke(Invocation invocation) throws RpcException {
+                        /**
+                         * 完成链的构建
+                         */
                         return filter.invoke(next, invocation);
                     }
 
@@ -88,8 +92,15 @@ public class ProtocolFilterWrapper implements Protocol {
 
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
         if (Constants.REGISTRY_PROTOCOL.equals(invoker.getUrl().getProtocol())) {
+            /**
+             *
+             */
             return protocol.export(invoker);
         }
+
+        /**
+         * 调用拦截器链
+         */
         return protocol.export(buildInvokerChain(invoker, Constants.SERVICE_FILTER_KEY, Constants.PROVIDER));
     }
 
