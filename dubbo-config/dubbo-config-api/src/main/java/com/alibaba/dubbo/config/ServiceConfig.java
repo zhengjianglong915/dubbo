@@ -71,8 +71,15 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final long serialVersionUID = 3033787999037024738L;
 
+    /**
+     * 使用spi 加载protol, 默认是dubbo协议
+     */
     private static final Protocol protocol = ExtensionLoader.getExtensionLoader(Protocol.class).getAdaptiveExtension();
 
+    /**
+     * 代理工厂，默认使用javassist
+     *
+     */
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
 
     private static final Map<String, Integer> RANDOM_PORT_MAP = new HashMap<String, Integer>();
@@ -145,6 +152,9 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     @Deprecated
     private static final ProviderConfig convertProtocolToProvider(ProtocolConfig protocol) {
+        /**
+         * 设置Provider配置
+         */
         ProviderConfig provider = new ProviderConfig();
         provider.setProtocol(protocol);
         provider.setServer(protocol.getServer());
@@ -237,6 +247,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
          * 先通过System.getProperty找，如果没找到，再在属性配置文件找
          */
         checkDefault();
+
         if (provider != null) {
             if (application == null) {
                 application = provider.getApplication();
@@ -342,6 +353,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
          *  前面经过一堆检查后，在这里暴露服务
          */
         doExportUrls();
+
         ProviderModel providerModel = new ProviderModel(getUniqueServiceName(), this, ref);
         ApplicationModel.initProviderModel(getUniqueServiceName(), providerModel);
     }
@@ -745,6 +757,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private void checkDefault() {
         if (provider == null) {
+            // 创建provider
             provider = new ProviderConfig();
         }
         appendProperties(provider);

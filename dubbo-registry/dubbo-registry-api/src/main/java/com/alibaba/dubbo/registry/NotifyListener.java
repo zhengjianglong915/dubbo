@@ -21,6 +21,7 @@ import com.alibaba.dubbo.common.URL;
 import java.util.List;
 
 /**
+ * 接受注册中心的通知
  * NotifyListener. (API, Prototype, ThreadSafe)
  *
  * @see com.alibaba.dubbo.registry.RegistryService#subscribe(URL, NotifyListener)

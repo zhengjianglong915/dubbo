@@ -78,11 +78,15 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
             currentClient = clients[index.getAndIncrement() % clients.length];
         }
         try {
+            // 是否异步
             boolean isAsync = RpcUtils.isAsync(getUrl(), invocation);
             boolean isOneway = RpcUtils.isOneway(getUrl(), invocation);
             int timeout = getUrl().getMethodParameter(methodName, Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);
             if (isOneway) {
                 boolean isSent = getUrl().getMethodParameter(methodName, Constants.SENT_KEY, false);
+                /**
+                 * 发送
+                 */
                 currentClient.send(inv, isSent);
                 RpcContext.getContext().setFuture(null);
                 return new RpcResult();
@@ -92,6 +96,9 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
                 return new RpcResult();
             } else {
                 RpcContext.getContext().setFuture(null);
+                /**
+                 * 发送 HeaderExchangeChannel
+                 */
                 return (Result) currentClient.request(inv, timeout).get();
             }
         } catch (TimeoutException e) {

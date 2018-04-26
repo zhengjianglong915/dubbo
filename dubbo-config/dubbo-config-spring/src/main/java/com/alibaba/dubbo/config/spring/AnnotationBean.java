@@ -183,6 +183,13 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
         return bean;
     }
 
+    /**
+     * 利用了spring的bean加载机制，在postProcessBeforeInitialization对bean做处理，类似spring的AOP
+     * @param bean
+     * @param beanName
+     * @return
+     * @throws BeansException
+     */
     public Object postProcessBeforeInitialization(Object bean, String beanName)
             throws BeansException {
         if (!isMatchPackage(bean)) {
@@ -198,6 +205,9 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
                 try {
                     Reference reference = method.getAnnotation(Reference.class);
                     if (reference != null) {
+                        /**
+                         *
+                         */
                         Object value = refer(reference, method.getParameterTypes()[0]);
                         if (value != null) {
                             method.invoke(bean, new Object[]{value});
@@ -239,6 +249,7 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
         } else {
             throw new IllegalStateException("The @Reference undefined interfaceClass or interfaceName, and the property type " + referenceClass.getName() + " is not a interface.");
         }
+        //
         String key = reference.group() + "/" + interfaceName + ":" + reference.version();
         ReferenceBean<?> referenceConfig = referenceConfigs.get(key);
         if (referenceConfig == null) {
@@ -285,6 +296,9 @@ public class AnnotationBean extends AbstractConfig implements DisposableBean, Be
             referenceConfigs.putIfAbsent(key, referenceConfig);
             referenceConfig = referenceConfigs.get(key);
         }
+        /**
+         * 调用
+         */
         return referenceConfig.get();
     }
 

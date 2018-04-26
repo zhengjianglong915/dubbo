@@ -55,6 +55,10 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport {
          * 解析service配置，并发布服务
          */
         registerBeanDefinitionParser("service", new DubboBeanDefinitionParser(ServiceBean.class, true));
+
+        /**
+         * 类型设置为 ReferenceBean
+         */
         registerBeanDefinitionParser("reference", new DubboBeanDefinitionParser(ReferenceBean.class, false));
         registerBeanDefinitionParser("annotation", new AnnotationBeanDefinitionParser());
     }

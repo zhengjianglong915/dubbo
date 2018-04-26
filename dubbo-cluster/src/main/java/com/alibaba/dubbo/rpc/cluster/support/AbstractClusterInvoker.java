@@ -119,7 +119,7 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
                 }
             }
         }
-        Invoker<T> invoker = doSelect(loadbalance, invocation, invokers, selected);
+        Invoker<T> invoker = doSelect(loadbalance, invocation, invokers, selected);  // 选择
 
         if (sticky) {
             stickyInvoker = invoker;
@@ -139,7 +139,7 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
         if (loadbalance == null) {
             loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(Constants.DEFAULT_LOADBALANCE);
         }
-        Invoker<T> invoker = loadbalance.select(invokers, getUrl(), invocation);
+        Invoker<T> invoker = loadbalance.select(invokers, getUrl(), invocation); // 选择，调用负载均衡器
 
         //If the `invoker` is in the  `selected` or invoker is unavailable && availablecheck is true, reselect.
         if ((selected != null && selected.contains(invoker))
@@ -224,13 +224,13 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
     public Result invoke(final Invocation invocation) throws RpcException {
         checkWhetherDestroyed();
         LoadBalance loadbalance = null;
-        List<Invoker<T>> invokers = list(invocation);
+        List<Invoker<T>> invokers = list(invocation); // 进去
         if (invokers != null && !invokers.isEmpty()) {
             loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(invokers.get(0).getUrl()
                     .getMethodParameter(invocation.getMethodName(), Constants.LOADBALANCE_KEY, Constants.DEFAULT_LOADBALANCE));
         }
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
-        return doInvoke(invocation, invokers, loadbalance);
+        return doInvoke(invocation, invokers, loadbalance); // FailoverClusterInvoker
     }
 
     protected void checkWhetherDestroyed() {

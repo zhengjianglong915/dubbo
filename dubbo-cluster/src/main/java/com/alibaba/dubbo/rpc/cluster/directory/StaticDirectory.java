@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * StaticDirectory
- *
+ * 不会动态变化
  */
 public class StaticDirectory<T> extends AbstractDirectory<T> {
 
@@ -80,7 +80,7 @@ public class StaticDirectory<T> extends AbstractDirectory<T> {
 
     @Override
     protected List<Invoker<T>> doList(Invocation invocation) throws RpcException {
-
+        // 直接返回
         return invokers;
     }
 

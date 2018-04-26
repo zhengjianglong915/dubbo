@@ -38,10 +38,16 @@ public class Hessian2Serialization implements Serialization {
     }
 
     public ObjectOutput serialize(URL url, OutputStream out) throws IOException {
+        /**
+         * 序列化
+         */
         return new Hessian2ObjectOutput(out);
     }
 
     public ObjectInput deserialize(URL url, InputStream is) throws IOException {
+        /**
+         * 反序列化
+         */
         return new Hessian2ObjectInput(is);
     }
 

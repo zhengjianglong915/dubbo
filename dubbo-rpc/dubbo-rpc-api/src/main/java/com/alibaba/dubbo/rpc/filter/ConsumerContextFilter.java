@@ -44,6 +44,9 @@ public class ConsumerContextFilter implements Filter {
             ((RpcInvocation) invocation).setInvoker(invoker);
         }
         try {
+            /**
+             * 经过一系列的过滤器 然后最后调用 DubboInvoker
+             */
             return invoker.invoke(invocation);
         } finally {
             RpcContext.getContext().clearAttachments();

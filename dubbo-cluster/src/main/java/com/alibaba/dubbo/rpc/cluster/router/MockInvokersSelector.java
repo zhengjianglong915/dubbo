@@ -42,7 +42,7 @@ public class MockInvokersSelector implements Router {
             if (value == null)
                 return getNormalInvokers(invokers);
             else if (Boolean.TRUE.toString().equalsIgnoreCase(value)) {
-                return getMockedInvokers(invokers);
+                return getMockedInvokers(invokers); //
             }
         }
         return invokers;

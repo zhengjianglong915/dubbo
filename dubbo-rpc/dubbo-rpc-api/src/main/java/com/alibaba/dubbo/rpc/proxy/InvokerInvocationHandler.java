@@ -48,6 +48,10 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if ("equals".equals(methodName) && parameterTypes.length == 1) {
             return invoker.equals(args[0]);
         }
+
+        /**
+         * 把每一个方法包装成一个RpcInvocation， 这里会不会导致RpcInvocation对象创建过多？为什么不缓存？
+         */
         return invoker.invoke(new RpcInvocation(method, args)).recreate();
     }
 

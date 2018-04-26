@@ -293,7 +293,7 @@ public class RegistryProtocol implements Protocol {
                 return doRefer(getMergeableCluster(), registry, type, url);
             }
         }
-        return doRefer(cluster, registry, type, url);
+        return doRefer(cluster, registry, type, url); //
     }
 
     private Cluster getMergeableCluster() {
@@ -312,12 +312,16 @@ public class RegistryProtocol implements Protocol {
             registry.register(subscribeUrl.addParameters(Constants.CATEGORY_KEY, Constants.CONSUMERS_CATEGORY,
                     Constants.CHECK_KEY, String.valueOf(false)));
         }
+        /**
+         *  跟进去
+         *
+         */
         directory.subscribe(subscribeUrl.addParameter(Constants.CATEGORY_KEY,
                 Constants.PROVIDERS_CATEGORY
                         + "," + Constants.CONFIGURATORS_CATEGORY
-                        + "," + Constants.ROUTERS_CATEGORY));
+                        + "," + Constants.ROUTERS_CATEGORY));  // 订阅，ZK某个节点的数据
 
-        Invoker invoker = cluster.join(directory);
+        Invoker invoker = cluster.join(directory); // 加入集群，获取invoker
         ProviderConsumerRegTable.registerConsuemr(invoker, url, subscribeUrl, directory);
         return invoker;
     }
@@ -368,6 +372,7 @@ public class RegistryProtocol implements Protocol {
         }
 
         /**
+         * 接收注册中心的通知，
          * @param urls The list of registered information , is always not empty, The meaning is the same as the return value of {@link com.alibaba.dubbo.registry.RegistryService#lookup(URL)}.
          */
         public synchronized void notify(List<URL> urls) {
