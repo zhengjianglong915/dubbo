@@ -98,6 +98,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
                 RpcContext.getContext().setFuture(null);
                 /**
                  * 发送 HeaderExchangeChannel
+                 * 网络请求，发送到对应的provider节点
                  */
                 return (Result) currentClient.request(inv, timeout).get();
             }

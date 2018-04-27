@@ -120,9 +120,12 @@ public class RegistryProtocol implements Protocol {
     }
 
     public void register(URL registryUrl, URL registedProviderUrl) {
+        /**
+         * 获取注册器
+         */
         Registry registry = registryFactory.getRegistry(registryUrl);
         /**
-         * 注册
+         * 注册  MulticastRegistry
          * registry.register -> FailbackRegistry.register -> ZookeeperRegistry.doRegister
          */
         registry.register(registedProviderUrl);
@@ -279,7 +282,7 @@ public class RegistryProtocol implements Protocol {
     @SuppressWarnings("unchecked")
     public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
         url = url.setProtocol(url.getParameter(Constants.REGISTRY_KEY, Constants.DEFAULT_REGISTRY)).removeParameter(Constants.REGISTRY_KEY);
-        Registry registry = registryFactory.getRegistry(url);
+        Registry registry = registryFactory.getRegistry(url); // 获取注册器，如果为创建过则进行初始化
         if (RegistryService.class.equals(type)) {
             return proxyFactory.getInvoker((T) registry, type, url);
         }
@@ -309,11 +312,14 @@ public class RegistryProtocol implements Protocol {
         URL subscribeUrl = new URL(Constants.CONSUMER_PROTOCOL, parameters.remove(Constants.REGISTER_IP_KEY), 0, type.getName(), parameters);
         if (!Constants.ANY_VALUE.equals(url.getServiceInterface())
                 && url.getParameter(Constants.REGISTER_KEY, true)) {
+            /**
+             *  向注册中心注册，感兴趣的事件. 发送一条消息给注册中心
+             */
             registry.register(subscribeUrl.addParameters(Constants.CATEGORY_KEY, Constants.CONSUMERS_CATEGORY,
                     Constants.CHECK_KEY, String.valueOf(false)));
         }
         /**
-         *  跟进去
+         *  订阅，将当前的directory加入到监听器中，接收订阅通知
          *
          */
         directory.subscribe(subscribeUrl.addParameter(Constants.CATEGORY_KEY,
@@ -321,6 +327,10 @@ public class RegistryProtocol implements Protocol {
                         + "," + Constants.CONFIGURATORS_CATEGORY
                         + "," + Constants.ROUTERS_CATEGORY));  // 订阅，ZK某个节点的数据
 
+        /**
+         * 根据directory方式获取invoker  MockClusterWrapper
+         * 构建一个FailoverClusterInvoker
+         */
         Invoker invoker = cluster.join(directory); // 加入集群，获取invoker
         ProviderConsumerRegTable.registerConsuemr(invoker, url, subscribeUrl, directory);
         return invoker;

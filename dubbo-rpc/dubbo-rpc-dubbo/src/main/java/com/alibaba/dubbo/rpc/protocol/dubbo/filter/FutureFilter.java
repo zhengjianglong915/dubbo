@@ -52,9 +52,9 @@ public class FutureFilter implements Filter {
         // necessary to return future.
         Result result = invoker.invoke(invocation);
         if (isAsync) {
-            asyncCallback(invoker, invocation);
+            asyncCallback(invoker, invocation); // 异步调用
         } else {
-            syncCallback(invoker, invocation, result);
+            syncCallback(invoker, invocation, result); // 同步调用
         }
         return result;
     }

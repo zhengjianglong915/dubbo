@@ -139,13 +139,13 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
         if (loadbalance == null) {
             loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(Constants.DEFAULT_LOADBALANCE);
         }
-        Invoker<T> invoker = loadbalance.select(invokers, getUrl(), invocation); // 选择，调用负载均衡器
+        Invoker<T> invoker = loadbalance.select(invokers, getUrl(), invocation); // 选择，调用负载均衡器 RandomLoadBalance
 
         //If the `invoker` is in the  `selected` or invoker is unavailable && availablecheck is true, reselect.
         if ((selected != null && selected.contains(invoker))
                 || (!invoker.isAvailable() && getUrl() != null && availablecheck)) {
             try {
-                Invoker<T> rinvoker = reselect(loadbalance, invocation, invokers, selected, availablecheck);
+                Invoker<T> rinvoker = reselect(loadbalance, invocation, invokers, selected, availablecheck); // 重新再选择
                 if (rinvoker != null) {
                     invoker = rinvoker;
                 } else {
@@ -224,12 +224,14 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
     public Result invoke(final Invocation invocation) throws RpcException {
         checkWhetherDestroyed();
         LoadBalance loadbalance = null;
-        List<Invoker<T>> invokers = list(invocation); // 进去
+        List<Invoker<T>> invokers = list(invocation); // 获取当前有效的所有invokers，用于负载均衡
         if (invokers != null && !invokers.isEmpty()) {
+            // 获取负载均衡器，默认采用的是RandomLoadBalance
             loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(invokers.get(0).getUrl()
                     .getMethodParameter(invocation.getMethodName(), Constants.LOADBALANCE_KEY, Constants.DEFAULT_LOADBALANCE));
         }
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
+        // 交给子类调用，FailoverClusterInvoker。 完成invokers的选择以及调用
         return doInvoke(invocation, invokers, loadbalance); // FailoverClusterInvoker
     }
 

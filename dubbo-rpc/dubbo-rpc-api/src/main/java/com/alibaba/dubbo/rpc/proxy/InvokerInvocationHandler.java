@@ -51,6 +51,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
 
         /**
          * 把每一个方法包装成一个RpcInvocation， 这里会不会导致RpcInvocation对象创建过多？为什么不缓存？
+         * MockClusterInvoker
          */
         return invoker.invoke(new RpcInvocation(method, args)).recreate();
     }

@@ -27,6 +27,9 @@ import com.alibaba.dubbo.registry.support.AbstractRegistryFactory;
 public class MulticastRegistryFactory extends AbstractRegistryFactory {
 
     public Registry createRegistry(URL url) {
+        /**
+         * 向注册中心注册
+         */
         return new MulticastRegistry(url);
     }
 

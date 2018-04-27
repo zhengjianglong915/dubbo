@@ -93,6 +93,9 @@ public class MulticastRegistry extends FailbackRegistry {
                     DatagramPacket recv = new DatagramPacket(buf, buf.length);
                     while (!mutilcastSocket.isClosed()) {
                         try {
+                            /**
+                             * 启动一个线程不断去监听接口，得到注册中心的数据后，进行处理。
+                             */
                             mutilcastSocket.receive(recv);
                             String msg = new String(recv.getData()).trim();
                             int i = msg.indexOf('\n');
@@ -109,7 +112,7 @@ public class MulticastRegistry extends FailbackRegistry {
                     }
                 }
             }, "DubboMulticastRegistryReceiver");
-            thread.setDaemon(true);
+            thread.setDaemon(true); // 后台进程
             thread.start();
         } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
@@ -119,7 +122,7 @@ public class MulticastRegistry extends FailbackRegistry {
             this.cleanFuture = cleanExecutor.scheduleWithFixedDelay(new Runnable() {
                 public void run() {
                     try {
-                        clean(); // Remove the expired
+                        clean(); // Remove the expired  定时清除线程，清除过期的providers
                     } catch (Throwable t) { // Defensive fault tolerance
                         logger.error("Unexpected exception occur at clean expired provider, cause: " + t.getMessage(), t);
                     }
@@ -235,6 +238,9 @@ public class MulticastRegistry extends FailbackRegistry {
         try {
             byte[] data = (msg + "\n").getBytes();
             DatagramPacket hi = new DatagramPacket(data, data.length, mutilcastAddress, mutilcastPort);
+            /**
+             * 发送数据
+             */
             mutilcastSocket.send(hi);
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage(), e);
@@ -369,7 +375,7 @@ public class MulticastRegistry extends FailbackRegistry {
 
     public void register(URL url) {
         super.register(url);
-        registered(url);
+        registered(url); // 看是否已经收到结果，如果收到则直接把结果存进去。
     }
 
     public void unregister(URL url) {
