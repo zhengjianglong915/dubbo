@@ -58,6 +58,9 @@ public class BroadcastClusterInvoker<T> extends AbstractClusterInvoker<T> {
             }
         }
         if (exception != null) {
+            /**
+             * 一台报错，则报错。前提都是每一台都执行完成了
+             */
             throw exception;
         }
         return result;

@@ -67,6 +67,10 @@ public class ScriptRouter implements Router {
         if (rule == null || rule.length() == 0) {
             throw new IllegalStateException(new IllegalStateException("route rule can not be empty. rule:" + rule));
         }
+
+        /**
+         *
+         */
         ScriptEngine engine = engines.get(type);
         if (engine == null) {
             engine = new ScriptEngineManager().getEngineByName(type);

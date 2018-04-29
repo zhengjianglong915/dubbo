@@ -21,6 +21,9 @@ import com.alibaba.dubbo.rpc.RpcException;
 import com.alibaba.dubbo.rpc.cluster.Cluster;
 import com.alibaba.dubbo.rpc.cluster.Directory;
 
+/**
+ * 分组聚合
+ */
 public class MergeableCluster implements Cluster {
 
     public static final String NAME = "mergeable";

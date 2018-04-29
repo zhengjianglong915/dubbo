@@ -22,6 +22,10 @@ import com.alibaba.dubbo.rpc.cluster.Cluster;
 import com.alibaba.dubbo.rpc.cluster.Directory;
 
 /**
+ * 并行调用多个服务器，只要一个成功即返回。
+ * 通常用于实时性要求较高的读操作，但需要浪费更多服务资源。可通过 forks="2" 来设置最大并行数。
+ * 保证了请求的可靠性
+ *
  * {@link ForkingClusterInvoker}
  *
  */

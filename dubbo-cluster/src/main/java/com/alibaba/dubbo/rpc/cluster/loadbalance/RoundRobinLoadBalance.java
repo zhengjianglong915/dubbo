@@ -28,6 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 /**
+ * 轮循，按公约后的权重设置轮循比率。
+ *
+ * 存在慢的提供者累积请求的问题，比如：第二台机器很慢，但没挂，当请求调到第二台时就卡在那，久而久之，所有请求都卡在调到第二台上。
+ *
  * Round robin load balance.
  *
  */
@@ -44,6 +48,10 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         int minWeight = Integer.MAX_VALUE; // The minimum weight
         final LinkedHashMap<Invoker<T>, IntegerWrapper> invokerToWeightMap = new LinkedHashMap<Invoker<T>, IntegerWrapper>();
         int weightSum = 0;
+
+        /**
+         * 求出最小和最大权重
+         */
         for (int i = 0; i < length; i++) {
             int weight = getWeight(invokers.get(i), invocation);
             maxWeight = Math.max(maxWeight, weight); // Choose the maximum weight

@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Random;
 
 /**
+ * 最少活跃调用数，相同活跃数的随机，活跃数指调用前后计数差。
+ * 使慢的提供者收到更少请求，因为越慢的提供者的调用前后计数差会越大。
+ *
  * LeastActiveLoadBalance
  *
  */
@@ -48,13 +51,16 @@ public class LeastActiveLoadBalance extends AbstractLoadBalance {
             int active = RpcStatus.getStatus(invoker.getUrl(), invocation.getMethodName()).getActive(); // Active number
             int weight = invoker.getUrl().getMethodParameter(invocation.getMethodName(), Constants.WEIGHT_KEY, Constants.DEFAULT_WEIGHT); // Weight
             if (leastActive == -1 || active < leastActive) { // Restart, when find a invoker having smaller least active value.
-                leastActive = active; // Record the current least active value
+                leastActive = active; // Record the current least active value 调用最少
                 leastCount = 1; // Reset leastCount, count again based on current leastCount
                 leastIndexs[0] = i; // Reset
                 totalWeight = weight; // Reset
                 firstWeight = weight; // Record the weight the first invoker
                 sameWeight = true; // Reset, every invoker has the same weight value?
             } else if (active == leastActive) { // If current invoker's active value equals with leaseActive, then accumulating.
+                /**
+                 * 可能最少活跃的invoker有多个，所以需要记录下来从中选择
+                 */
                 leastIndexs[leastCount++] = i; // Record index number of this invoker
                 totalWeight += weight; // Add this invoker's weight to totalWeight.
                 // If every invoker has the same weight?

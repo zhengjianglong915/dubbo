@@ -206,6 +206,7 @@ public class RegistryDirectory<T> extends AbstractDirectory<T> implements Notify
         if (routerUrls != null && !routerUrls.isEmpty()) {
             List<Router> routers = toRouters(routerUrls);
             if (routers != null) { // null - do nothing
+                // 设置router
                 setRouters(routers);
             }
         }

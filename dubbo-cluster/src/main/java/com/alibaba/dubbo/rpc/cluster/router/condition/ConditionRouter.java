@@ -39,6 +39,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * 条件路由器
+ * 条件路由主要就是根据dubbo管理控制台配置的路由规则来过滤相关的invoker
  * ConditionRouter
  *
  */

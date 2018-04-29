@@ -70,11 +70,17 @@ public class ForkingClusterInvoker<T> extends AbstractClusterInvoker<T> {
         RpcContext.getContext().setInvokers((List) selected);
         final AtomicInteger count = new AtomicInteger();
         final BlockingQueue<Object> ref = new LinkedBlockingQueue<Object>();
+        /**
+         * 启动多个线程
+         */
         for (final Invoker<T> invoker : selected) {
             executor.execute(new Runnable() {
                 public void run() {
                     try {
                         Result result = invoker.invoke(invocation);
+                        /**
+                         * 将结果放到队列中
+                         */
                         ref.offer(result);
                     } catch (Throwable e) {
                         int value = count.incrementAndGet();
@@ -86,6 +92,9 @@ public class ForkingClusterInvoker<T> extends AbstractClusterInvoker<T> {
             });
         }
         try {
+            /**
+             * 从队列中获取消息，设置了超时时间
+             */
             Object ret = ref.poll(timeout, TimeUnit.MILLISECONDS);
             if (ret instanceof Throwable) {
                 Throwable e = (Throwable) ret;

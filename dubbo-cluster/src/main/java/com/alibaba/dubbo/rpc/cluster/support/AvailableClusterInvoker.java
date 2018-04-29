@@ -26,6 +26,7 @@ import com.alibaba.dubbo.rpc.cluster.LoadBalance;
 import java.util.List;
 
 /**
+ * 可用的, 返回可用的invoker
  * AvailableCluster
  *
  */

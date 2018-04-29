@@ -103,6 +103,7 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
             RouterFactory routerFactory = ExtensionLoader.getExtensionLoader(RouterFactory.class).getExtension(routerkey);
             routers.add(routerFactory.getRouter(url));
         }
+        // 附加的，如果没有设置的话
         // append mock invoker selector
         routers.add(new MockInvokersSelector());
         Collections.sort(routers);

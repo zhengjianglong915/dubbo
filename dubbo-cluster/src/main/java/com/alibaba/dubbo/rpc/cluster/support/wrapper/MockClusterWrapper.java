@@ -22,6 +22,8 @@ import com.alibaba.dubbo.rpc.cluster.Cluster;
 import com.alibaba.dubbo.rpc.cluster.Directory;
 
 /**
+ * 本地伪装通常用于服务降级，比如某验权服务，
+ * 当服务提供方全部挂掉后，客户端不抛出异常，而是通过 Mock 数据返回授权失败
  * mock impl
  *
  */

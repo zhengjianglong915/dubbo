@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * 失败自动切换，当出现失败，重试其它服务器。
+ *
  * When invoke fails, log the initial error and retry other invokers (retry n times, which means at most n different invokers will be invoked)
  * Note that retry causes latency.
  * <p>

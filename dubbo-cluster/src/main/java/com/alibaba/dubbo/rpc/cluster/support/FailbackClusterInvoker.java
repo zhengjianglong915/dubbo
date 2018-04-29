@@ -104,6 +104,9 @@ public class FailbackClusterInvoker<T> extends AbstractClusterInvoker<T> {
         } catch (Throwable e) {
             logger.error("Failback to invoke method " + invocation.getMethodName() + ", wait for retry in background. Ignored exception: "
                     + e.getMessage() + ", ", e);
+            /**
+             * 加入一个失败队列，后面定时发送
+             */
             addFailed(invocation, this);
             return new RpcResult(); // ignore
         }
