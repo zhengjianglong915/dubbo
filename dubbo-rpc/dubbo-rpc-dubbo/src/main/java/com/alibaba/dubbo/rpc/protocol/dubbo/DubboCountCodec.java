@@ -38,14 +38,19 @@ public final class DubboCountCodec implements Codec2 {
     }
 
     public Object decode(Channel channel, ChannelBuffer buffer) throws IOException {
+        // 当前的读索引记录下来
         int save = buffer.readerIndex();
+        // 多消息
         MultiMessage result = MultiMessage.create();
         do {
+            // 解码消息
             Object obj = codec.decode(channel, buffer);
+            // 不是完整的协议包
             if (Codec2.DecodeResult.NEED_MORE_INPUT == obj) {
                 buffer.readerIndex(save);
                 break;
             } else {
+                // 多个协议包
                 result.addMessage(obj);
                 logMessageLength(obj, buffer.readerIndex() - save);
                 save = buffer.readerIndex();

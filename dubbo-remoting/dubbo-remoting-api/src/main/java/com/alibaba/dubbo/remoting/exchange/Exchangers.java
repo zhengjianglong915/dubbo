@@ -66,6 +66,7 @@ public class Exchangers {
         if (handler == null) {
             throw new IllegalArgumentException("handler == null");
         }
+        // 如果url中没有codec属性，就会添加codec=exchange
         url = url.addParameterIfAbsent(Constants.CODEC_KEY, "exchange");
         /**
          * 先获取一个Exchanger

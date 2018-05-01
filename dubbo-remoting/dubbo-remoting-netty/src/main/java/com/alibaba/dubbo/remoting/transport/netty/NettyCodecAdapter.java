@@ -133,15 +133,22 @@ final class NettyCodecAdapter {
                 do {
                     saveReaderIndex = message.readerIndex();
                     try {
+                        /**
+                         * 解码DubboCountCodec
+                         */
                         msg = codec.decode(channel, message);
                     } catch (IOException e) {
                         buffer = com.alibaba.dubbo.remoting.buffer.ChannelBuffers.EMPTY_BUFFER;
                         throw e;
                     }
+                    // 不完整的协议包
                     if (msg == Codec2.DecodeResult.NEED_MORE_INPUT) {
+                        // 重置读索引
                         message.readerIndex(saveReaderIndex);
+                        //跳出循环，之后在finally中把message赋值给buffer保存起来，等到下次接收到数据包的时候会追加到buffer的后面
                         break;
                     } else {
+                        // 有多个协议包，触发messageReceived事件
                         if (saveReaderIndex == message.readerIndex()) {
                             buffer = com.alibaba.dubbo.remoting.buffer.ChannelBuffers.EMPTY_BUFFER;
                             throw new IOException("Decode without read data.");
