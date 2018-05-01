@@ -53,6 +53,10 @@ public class Transporters {
         } else {
             handler = new ChannelHandlerDispatcher(handlers);
         }
+
+        /**
+         * 获取Transporter
+         */
         return getTransporter().bind(url, handler);
     }
 

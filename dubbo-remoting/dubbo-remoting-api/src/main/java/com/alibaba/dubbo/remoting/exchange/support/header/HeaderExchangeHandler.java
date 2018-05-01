@@ -159,6 +159,9 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
         ExchangeChannel exchangeChannel = HeaderExchangeChannel.getOrAddChannel(channel);
         try {
             if (message instanceof Request) {
+                /**
+                 * 请求
+                 */
                 // handle request.
                 Request request = (Request) message;
                 if (request.isEvent()) {
@@ -172,6 +175,9 @@ public class HeaderExchangeHandler implements ChannelHandlerDelegate {
                     }
                 }
             } else if (message instanceof Response) {
+                /**
+                 * 响应结果
+                 */
                 handleResponse(channel, (Response) message);
             } else if (message instanceof String) {
                 if (isClientSide(channel)) {

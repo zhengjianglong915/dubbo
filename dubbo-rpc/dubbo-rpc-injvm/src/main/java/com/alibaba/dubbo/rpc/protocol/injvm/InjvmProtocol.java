@@ -30,6 +30,7 @@ import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 import java.util.Map;
 
 /**
+ * 本地暴露
  * InjvmProtocol
  */
 public class InjvmProtocol extends AbstractProtocol implements Protocol {
@@ -81,6 +82,9 @@ public class InjvmProtocol extends AbstractProtocol implements Protocol {
     }
 
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+        /**
+         * 返回一个 InjvmExporter 对象
+         */
         return new InjvmExporter<T>(invoker, invoker.getUrl().getServiceKey(), exporterMap);
     }
 

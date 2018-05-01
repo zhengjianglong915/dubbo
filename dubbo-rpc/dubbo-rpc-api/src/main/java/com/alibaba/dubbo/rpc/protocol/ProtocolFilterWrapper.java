@@ -45,7 +45,7 @@ public class ProtocolFilterWrapper implements Protocol {
 
     private static <T> Invoker<T> buildInvokerChain(final Invoker<T> invoker, String key, String group) {
         Invoker<T> last = invoker;
-        // 读取所有的filter
+        // 读取所有的filter， 一共有8个过滤器
         List<Filter> filters = ExtensionLoader.getExtensionLoader(Filter.class).getActivateExtension(invoker.getUrl(), key, group);
         if (!filters.isEmpty()) {
             for (int i = filters.size() - 1; i >= 0; i--) {
@@ -93,13 +93,13 @@ public class ProtocolFilterWrapper implements Protocol {
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
         if (Constants.REGISTRY_PROTOCOL.equals(invoker.getUrl().getProtocol())) {
             /**
-             *
+             *  本地服务不需要这个过程， 主要用于远程服务
              */
-            return protocol.export(invoker);
+            return protocol.export(invoker); // 这边调用的是 ProtocolListenerWrapper
         }
 
         /**
-         * 调用拦截器链
+         * 调用拦截器链。  本地暴露和远程暴露都要调用
          */
         return protocol.export(buildInvokerChain(invoker, Constants.SERVICE_FILTER_KEY, Constants.PROVIDER));
     }

@@ -23,11 +23,17 @@ import com.alibaba.dubbo.remoting.RemotingException;
 import com.alibaba.dubbo.remoting.Server;
 import com.alibaba.dubbo.remoting.Transporter;
 
+/**
+ * 默认传输器
+ */
 public class NettyTransporter implements Transporter {
 
     public static final String NAME = "netty";
 
     public Server bind(URL url, ChannelHandler listener) throws RemotingException {
+        /**
+         * 绑定服务
+         */
         return new NettyServer(url, listener);
     }
 

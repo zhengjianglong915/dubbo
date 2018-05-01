@@ -106,7 +106,7 @@ final class HeaderExchangeChannel implements ExchangeChannel {
         req.setVersion("2.0.0");
         req.setTwoWay(true);
         req.setData(request);
-        // 构建异步结果
+        // 构建异步结果， 因为request中有一个mid DefaultFuture中通过这个mid建立联系。每次只要监听这个mid是否有值就可以知道结果
         DefaultFuture future = new DefaultFuture(channel, req, timeout);
         try {
             /**

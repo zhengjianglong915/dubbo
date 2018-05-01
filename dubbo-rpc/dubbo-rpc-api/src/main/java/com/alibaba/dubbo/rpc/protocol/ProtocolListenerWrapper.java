@@ -58,10 +58,16 @@ public class ProtocolListenerWrapper implements Protocol {
      */
     public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
         if (Constants.REGISTRY_PROTOCOL.equals(invoker.getUrl().getProtocol())) {
-            return protocol.export(invoker);
+            /**
+             * RegistryProtocol
+             */
+            return protocol.export(invoker); // 如果是远程暴露，需要调远程暴露的protocol.export 否则就和下面一样直接包装为ListenerExporterWrapper
         }
         /**
-         * 执行监听器
+         * 1. 如果是本地暴露InjvmProtocol，protocol.export 生成的是  InjvmExporter对象
+         * 2. 如果是远程暴露DubboProtocol，会调用远程暴露的逻辑。  DubboProtocol
+         *
+         * 包装监听器
          */
         return new ListenerExporterWrapper<T>(protocol.export(invoker),
                 Collections.unmodifiableList(ExtensionLoader.getExtensionLoader(ExporterListener.class)

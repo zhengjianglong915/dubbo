@@ -48,7 +48,10 @@ public abstract class AbstractEndpoint extends AbstractPeer implements Resetable
     }
 
     protected static Codec2 getChannelCodec(URL url) {
+        // 获取codecName，不存在的话，默认为telnet
         String codecName = url.getParameter(Constants.CODEC_KEY, "telnet");
+        // 先看下是不是Codec2的实现，是的话就根据SPI扩展机制获得Codec2扩展的实现
+        // 我们这里默认使用的是 DubboCountCodec
         if (ExtensionLoader.getExtensionLoader(Codec2.class).hasExtension(codecName)) {
             return ExtensionLoader.getExtensionLoader(Codec2.class).getExtension(codecName);
         } else {

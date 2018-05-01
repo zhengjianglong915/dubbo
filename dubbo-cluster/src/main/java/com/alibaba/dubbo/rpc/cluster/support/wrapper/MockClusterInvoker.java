@@ -72,19 +72,29 @@ public class MockClusterInvoker<T> implements Invoker<T> {
             if (logger.isWarnEnabled()) {
                 logger.info("force-mock: " + invocation.getMethodName() + " force-mock enabled , url : " + directory.getUrl());
             }
+            /**
+             * 屏蔽，不调用。直接返回null.
+             */
             //force:direct mock
             result = doMockInvoke(invocation, null);
         } else {
+            /**
+             * 容错
+             */
             //fail-mock
             try {
                 result = this.invoker.invoke(invocation);
             } catch (RpcException e) {
                 if (e.isBiz()) {
+                    // 如果是业务错误
                     throw e;
                 } else {
                     if (logger.isWarnEnabled()) {
                         logger.info("fail-mock: " + invocation.getMethodName() + " fail-mock enabled , url : " + directory.getUrl(), e);
                     }
+                    /**
+                     * 其他服务错误，则包装一层，不跑异常
+                     */
                     result = doMockInvoke(invocation, e);
                 }
             }

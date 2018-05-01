@@ -39,6 +39,9 @@ public class HeaderExchanger implements Exchanger {
     }
 
     public ExchangeServer bind(URL url, ExchangeHandler handler) throws RemotingException {
+        /**
+         * Transporters
+         */
         return new HeaderExchangeServer(Transporters.bind(url, new DecodeHandler(new HeaderExchangeHandler(handler))));
     }
 

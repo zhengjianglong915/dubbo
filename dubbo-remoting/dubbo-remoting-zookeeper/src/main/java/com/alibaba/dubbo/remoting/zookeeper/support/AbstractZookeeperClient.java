@@ -58,9 +58,23 @@ public abstract class AbstractZookeeperClient<TargetChildListener> implements Zo
             }
         }
         if (ephemeral) {
+            /**
+             * 临时节点(Ephemeral)，具体实例或叶子节点
+             * 临时节点的生命周期和客户端会话绑定,也就是说,如果客户端会话失效,那么这个节点就会自动被清除掉
+             *
+             * 例如：
+             * /dubbo/com.alibaba.dubbo.demo.DemoService/providers/xxxxx
+             */
             createEphemeral(path);
         } else {
-            createPersistent(path);
+            /**
+             * 持久节点(Persistent)， 相当于路径
+             * 所谓持久节点,是指在节点创建后,就一直存在,直到有删除操作来主动清除这个节点,也就是说不会因为创建该节点的客户端会话失效而消失
+             *
+             * 例如：/dubbo
+             *      /dubbo/com.alibaba.dubbo.demo.DemoService/providers
+             */
+            createPersistent(path); //
         }
     }
 

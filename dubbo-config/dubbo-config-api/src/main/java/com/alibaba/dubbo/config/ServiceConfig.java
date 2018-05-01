@@ -86,7 +86,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     private static final ScheduledExecutorService delayExportExecutor = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("DubboServiceDelayExporter", true));
     private final List<URL> urls = new ArrayList<URL>();
-    private final List<Exporter<?>> exporters = new ArrayList<Exporter<?>>();
+    private final List<Exporter<?>> exporters = new ArrayList<Exporter<?>>(); // 这边保存的目的是什么
     // interface type  // 接口类型
     private String interfaceName;
     private Class<?> interfaceClass;
@@ -399,6 +399,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         List<URL> registryURLs = loadRegistries(true);
         // 根据每一个协议配置来分别暴露服务
         for (ProtocolConfig protocolConfig : protocols) {
+            // dubbo支持多协议的
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
@@ -547,7 +548,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 exportLocal(url);
             }
             // export to remote if the config is not local (export to local only when config is local)
-            // 如果配置不是local则暴露为远程服务.(配置为local，则表示只暴露远程服务)
+            // 如果配置不是local则暴露为远程服务.(配置为local，则表示只暴露本地服务)
             if (!Constants.SCOPE_LOCAL.toString().equalsIgnoreCase(scope)) {
                 if (logger.isInfoEnabled()) {
                     logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
@@ -565,7 +566,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         // 通过代理工厂获得一个调用者
                         // 关于proxyFactory实例，看下面的截图。默认SPI 名称为：javassist
                         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
-                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
+                        DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker,
+                                this);// 这个又有啥用
 
                         // 执行注册导出，这里使用了registry 协议
                         // 通过类似上面的方式找到com.alibaba.dubbo.registry.integration.RegistryProtocol
@@ -594,9 +596,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                     .setProtocol(Constants.LOCAL_PROTOCOL)
                     .setHost(LOCALHOST)
                     .setPort(0);
-            ServiceClassHolder.getInstance().pushServiceClass(getServiceClass(ref));
+            ServiceClassHolder.getInstance().pushServiceClass(getServiceClass(ref)); // ref 是什么时候创建的
             Exporter<?> exporter = protocol.export(
-                    proxyFactory.getInvoker(ref, (Class) interfaceClass, local));
+                    // 先创建代理对象
+                    proxyFactory.getInvoker(ref, (Class) interfaceClass, local)); // StubProxyFactoryWrapper
             exporters.add(exporter);
             logger.info("Export dubbo service " + interfaceClass.getName() + " to local registry");
         }

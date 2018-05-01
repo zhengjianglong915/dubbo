@@ -90,10 +90,16 @@ public class DefaultFuture implements ResponseFuture {
         }
     }
 
+    /**
+     * 接收数据
+     * @param channel
+     * @param response
+     */
     public static void received(Channel channel, Response response) {
         try {
             DefaultFuture future = FUTURES.remove(response.getId());
             if (future != null) {
+                // 更新，并调用回调函数 callback
                 future.doReceived(response);
             } else {
                 logger.warn("The timeout response finally returned at "

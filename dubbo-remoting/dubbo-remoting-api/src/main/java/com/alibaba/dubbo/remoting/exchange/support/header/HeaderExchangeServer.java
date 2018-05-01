@@ -70,6 +70,10 @@ public class HeaderExchangeServer implements ExchangeServer {
         if (heartbeatTimeout < heartbeat * 2) {
             throw new IllegalStateException("heartbeatTimeout < heartbeatInterval * 2");
         }
+
+        /**
+         * 心跳检测服务
+         */
         startHeatbeatTimer();
     }
 
@@ -235,6 +239,9 @@ public class HeaderExchangeServer implements ExchangeServer {
     private void startHeatbeatTimer() {
         stopHeartbeatTimer();
         if (heartbeat > 0) {
+            /**
+             * 创建定时任务
+             */
             heatbeatTimer = scheduled.scheduleWithFixedDelay(
                     new HeartBeatTask(new HeartBeatTask.ChannelProvider() {
                         public Collection<Channel> getChannels() {

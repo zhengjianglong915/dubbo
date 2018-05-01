@@ -66,7 +66,14 @@ public class NettyServer extends AbstractServer implements Server {
         NettyHelper.setNettyLoggerFactory();
         ExecutorService boss = Executors.newCachedThreadPool(new NamedThreadFactory("NettyServerBoss", true));
         ExecutorService worker = Executors.newCachedThreadPool(new NamedThreadFactory("NettyServerWorker", true));
+
+        /**
+         * 工厂，默认的线程数量 = Math.min(Runtime.getRuntime().availableProcessors() + 1, 32);
+         */
         ChannelFactory channelFactory = new NioServerSocketChannelFactory(boss, worker, getUrl().getPositiveParameter(Constants.IO_THREADS_KEY, Constants.DEFAULT_IO_THREADS));
+        /**
+         * 启动服务
+         */
         bootstrap = new ServerBootstrap(channelFactory);
 
         final NettyHandler nettyHandler = new NettyHandler(getUrl(), this);
@@ -88,6 +95,10 @@ public class NettyServer extends AbstractServer implements Server {
                 return pipeline;
             }
         });
+
+        /**
+         * 绑定
+         */
         // bind
         channel = bootstrap.bind(getBindAddress());
     }

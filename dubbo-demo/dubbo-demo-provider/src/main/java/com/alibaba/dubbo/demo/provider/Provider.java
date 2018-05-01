@@ -18,6 +18,8 @@ package com.alibaba.dubbo.demo.provider;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.alibaba.dubbo.demo.DemoService;
+
 public class Provider {
 
     public static void main(String[] args) throws Exception {
@@ -30,6 +32,10 @@ public class Provider {
          */
         ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"META-INF/spring/dubbo-demo-provider.xml"});
         context.start();
+
+        DemoService service = (DemoService)context.getBean("demoService");
+        String result = service.sayHello("zjl");
+        System.out.println(result);
 
         System.in.read(); // press any key to exit
     }

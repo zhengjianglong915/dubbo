@@ -100,7 +100,7 @@ public class StubProxyFactoryWrapper implements ProxyFactory {
     }
 
     public <T> Invoker<T> getInvoker(T proxy, Class<T> type, URL url) throws RpcException {
-        return proxyFactory.getInvoker(proxy, type, url);
+        return proxyFactory.getInvoker(proxy, type, url);  // 代理工厂获取invoker
     }
 
     private <T> Exporter<T> export(T instance, Class<T> type, URL url) {

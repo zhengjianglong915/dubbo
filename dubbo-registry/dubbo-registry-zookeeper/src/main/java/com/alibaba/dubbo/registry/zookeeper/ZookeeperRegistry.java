@@ -66,9 +66,20 @@ public class ZookeeperRegistry extends FailbackRegistry {
             group = Constants.PATH_SEPARATOR + group;
         }
         this.root = group;
+
+        /**
+         * zk客户端
+         */
         zkClient = zookeeperTransporter.connect(url);
+
+        /**
+         * 增加监听事件
+         */
         zkClient.addStateListener(new StateListener() {
             public void stateChanged(int state) {
+                /**
+                 * 重新连上
+                 */
                 if (state == RECONNECTED) {
                     try {
                         recover();
@@ -167,19 +178,32 @@ public class ZookeeperRegistry extends FailbackRegistry {
                     }
                     ChildListener zkListener = listeners.get(listener);
                     if (zkListener == null) {
+                        /**
+                         * 监听孩子节点变化
+                         */
                         listeners.putIfAbsent(listener, new ChildListener() {
                             public void childChanged(String parentPath, List<String> currentChilds) {
+                                /**
+                                 * 设置监听回调的地址 notify,
+                                 */
                                 ZookeeperRegistry.this.notify(url, listener, toUrlsWithEmpty(url, parentPath, currentChilds));
                             }
                         });
                         zkListener = listeners.get(listener);
                     }
+
+                    /**
+                     * 创建持久节点
+                     */
                     zkClient.create(path, false);
                     List<String> children = zkClient.addChildListener(path, zkListener);
                     if (children != null) {
                         urls.addAll(toUrlsWithEmpty(url, path, children));
                     }
                 }
+                /**
+                 * 通知，并更新
+                 */
                 notify(url, listener, urls);
             }
         } catch (Throwable e) {

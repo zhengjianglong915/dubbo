@@ -38,6 +38,9 @@ public abstract class AbstractProtocol implements Protocol {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
+    /**
+     * AbstractProtocol 是单例，每个协议只有一个exporterMap对象。 用来存放暴露对象的映射
+     */
     protected final Map<String, Exporter<?>> exporterMap = new ConcurrentHashMap<String, Exporter<?>>();
 
     //TODO SOFEREFENCE

@@ -90,6 +90,9 @@ public abstract class AbstractRegistry implements Registry {
             }
         }
         this.file = file;
+        /**
+         * 加载本地配置，缓存在 ~/.dubbo/ 目录下
+         */
         loadProperties();
         notify(url.getBackupUrls());
     }
@@ -147,12 +150,18 @@ public abstract class AbstractRegistry implements Registry {
         }
         // Save
         try {
+            /**
+             * 锁定
+             */
             File lockfile = new File(file.getAbsolutePath() + ".lock");
             if (!lockfile.exists()) {
                 lockfile.createNewFile();
             }
             RandomAccessFile raf = new RandomAccessFile(lockfile, "rw");
             try {
+                /**
+                 * 用了channel来写
+                 */
                 FileChannel channel = raf.getChannel();
                 try {
                     FileLock lock = channel.tryLock();
@@ -403,7 +412,13 @@ public abstract class AbstractRegistry implements Registry {
             String category = entry.getKey();
             List<URL> categoryList = entry.getValue();
             categoryNotified.put(category, categoryList);
+            /**
+             * 更新
+             */
             saveProperties(url);
+            /**
+             * 调用监听器
+             */
             listener.notify(categoryList);
         }
     }
@@ -429,8 +444,14 @@ public abstract class AbstractRegistry implements Registry {
             properties.setProperty(url.getServiceKey(), buf.toString());
             long version = lastCacheChanged.incrementAndGet();
             if (syncSaveFile) {
+                /**
+                 * 马上刷新本地
+                 */
                 doSaveProperties(version);
             } else {
+                /**
+                 * 定时刷新
+                 */
                 registryCacheExecutor.execute(new SaveProperties(version));
             }
         } catch (Throwable t) {
@@ -487,6 +508,9 @@ public abstract class AbstractRegistry implements Registry {
         }
 
         public void run() {
+            /**
+             * 保存
+             */
             doSaveProperties(version);
         }
     }

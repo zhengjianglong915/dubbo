@@ -35,6 +35,9 @@ public class DecodeHandler extends AbstractChannelHandlerDelegate {
     }
 
     public void received(Channel channel, Object message) throws RemotingException {
+        /**
+         * 收到请求后，先解码
+         */
         if (message instanceof Decodeable) {
             decode(message);
         }
@@ -47,10 +50,16 @@ public class DecodeHandler extends AbstractChannelHandlerDelegate {
             decode(((Response) message).getResult());
         }
 
+        /**
+         * 将解码后的信息，传给handler处理
+         */
         handler.received(channel, message);
     }
 
     private void decode(Object message) {
+        /**
+         * 对请求进行编码
+         */
         if (message != null && message instanceof Decodeable) {
             try {
                 ((Decodeable) message).decode();

@@ -69,11 +69,19 @@ public class DubboProtocol extends AbstractProtocol {
     //consumer side export a stub service for dispatching event
     //servicekey-stubmethods
     private final ConcurrentMap<String, String> stubServiceMethodsMap = new ConcurrentHashMap<String, String>();
+
+    /**
+     * 这里处理请求
+     */
     private ExchangeHandler requestHandler = new ExchangeHandlerAdapter() {
 
         public Object reply(ExchangeChannel channel, Object message) throws RemotingException {
             if (message instanceof Invocation) {
                 Invocation inv = (Invocation) message;
+                /**
+                 * 根据channel和Invocation 获取对应的invoker
+                 * 本质上是从exportMap中获取
+                 */
                 Invoker<?> invoker = getInvoker(channel, inv);
                 // need to consider backward-compatibility if it's a callback
                 if (Boolean.TRUE.toString().equals(inv.getAttachments().get(IS_CALLBACK_SERVICE_INVOKE))) {
@@ -99,6 +107,9 @@ public class DubboProtocol extends AbstractProtocol {
                     }
                 }
                 RpcContext.getContext().setRemoteAddress(channel.getRemoteAddress());
+                /**
+                 * 调用
+                 */
                 return invoker.invoke(inv);
             }
             throw new RemotingException(channel, "Unsupported request: "
@@ -109,6 +120,9 @@ public class DubboProtocol extends AbstractProtocol {
         @Override
         public void received(Channel channel, Object message) throws RemotingException {
             if (message instanceof Invocation) {
+                /**
+                 * 如果是调用请求
+                 */
                 reply((ExchangeChannel) channel, message);
             } else {
                 super.received(channel, message);
@@ -203,13 +217,23 @@ public class DubboProtocol extends AbstractProtocol {
             path = inv.getAttachments().get(Constants.PATH_KEY) + "." + inv.getAttachments().get(Constants.CALLBACK_SERVICE_KEY);
             inv.getAttachments().put(IS_CALLBACK_SERVICE_INVOKE, Boolean.TRUE.toString());
         }
+
+        /**
+         * 构建serviceKey
+         */
         String serviceKey = serviceKey(port, path, inv.getAttachments().get(Constants.VERSION_KEY), inv.getAttachments().get(Constants.GROUP_KEY));
 
+        /**
+         * 从exporterMap中获取
+         */
         DubboExporter<?> exporter = (DubboExporter<?>) exporterMap.get(serviceKey);
 
         if (exporter == null)
             throw new RemotingException(channel, "Not found exported service: " + serviceKey + " in " + exporterMap.keySet() + ", may be version or group mismatch " + ", channel: consumer: " + channel.getRemoteAddress() + " --> provider: " + channel.getLocalAddress() + ", message:" + inv);
 
+        /**
+         * 从export中获取invoker。
+         */
         return exporter.getInvoker();
     }
 
@@ -226,6 +250,9 @@ public class DubboProtocol extends AbstractProtocol {
 
         // export service.
         String key = serviceKey(url);
+        /**
+         * 构建了一个DubboExporter
+         */
         DubboExporter<T> exporter = new DubboExporter<T>(invoker, key, exporterMap);
         exporterMap.put(key, exporter);
 
@@ -233,7 +260,7 @@ public class DubboProtocol extends AbstractProtocol {
         Boolean isStubSupportEvent = url.getParameter(Constants.STUB_EVENT_KEY, Constants.DEFAULT_STUB_EVENT);
         Boolean isCallbackservice = url.getParameter(Constants.IS_CALLBACK_SERVICE, false);
         if (isStubSupportEvent && !isCallbackservice) {
-            String stubServiceMethods = url.getParameter(Constants.STUB_EVENT_METHODS_KEY);
+            String stubServiceMethods = url.getParameter(Constants.STUB_EVENT_METHODS_KEY); // ?
             if (stubServiceMethods == null || stubServiceMethods.length() == 0) {
                 if (logger.isWarnEnabled()) {
                     logger.warn(new IllegalStateException("consumer [" + url.getParameter(Constants.INTERFACE_KEY) +
@@ -244,6 +271,9 @@ public class DubboProtocol extends AbstractProtocol {
             }
         }
 
+        /**
+         * 开启服务
+         */
         openServer(url);
         optimizeSerialization(url);
         return exporter;
@@ -257,6 +287,9 @@ public class DubboProtocol extends AbstractProtocol {
         if (isServer) {
             ExchangeServer server = serverMap.get(key);
             if (server == null) {
+                /**
+                 * 如果没有建立与指定address的服务连接，需要创建一个新的
+                 */
                 serverMap.put(key, createServer(url));
             } else {
                 // server supports reset, use together with override
@@ -278,6 +311,9 @@ public class DubboProtocol extends AbstractProtocol {
         url = url.addParameter(Constants.CODEC_KEY, DubboCodec.NAME);
         ExchangeServer server;
         try {
+            /**
+             *
+             */
             server = Exchangers.bind(url, requestHandler);
         } catch (RemotingException e) {
             throw new RpcException("Fail to start server(url: " + url + ") " + e.getMessage(), e);

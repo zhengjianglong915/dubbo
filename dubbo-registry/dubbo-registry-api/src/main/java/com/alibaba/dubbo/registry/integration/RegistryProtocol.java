@@ -164,6 +164,10 @@ public class RegistryProtocol implements Protocol {
         final URL overrideSubscribeUrl = getSubscribedOverrideUrl(registedProviderUrl);
         final OverrideListener overrideSubscribeListener = new OverrideListener(overrideSubscribeUrl, originInvoker);
         overrideListeners.put(overrideSubscribeUrl, overrideSubscribeListener);
+
+        /**
+         * 订阅，并更新本地缓存
+         */
         registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
         //Ensure that a new exporter instance is returned every time export
         // 保证每次export都返回一个新的exporter实例
@@ -179,7 +183,8 @@ public class RegistryProtocol implements Protocol {
                 exporter = (ExporterChangeableWrapper<T>) bounds.get(key);
                 if (exporter == null) {
                     final Invoker<?> invokerDelegete = new InvokerDelegete<T>(originInvoker, getProviderUrl(originInvoker));
-                    exporter = new ExporterChangeableWrapper<T>((Exporter<T>) protocol.export(invokerDelegete), originInvoker);
+                    exporter = new ExporterChangeableWrapper<T>((Exporter<T>) protocol.export(invokerDelegete),
+                            originInvoker);  // DubboProtocol, 将本地服务包装，并使用DubboProtocol发布
                     bounds.put(key, exporter);
                 }
             }

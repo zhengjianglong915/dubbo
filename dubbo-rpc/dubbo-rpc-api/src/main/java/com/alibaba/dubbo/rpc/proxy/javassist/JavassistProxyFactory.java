@@ -33,11 +33,11 @@ public class JavassistProxyFactory extends AbstractProxyFactory {
     @SuppressWarnings("unchecked")
     public <T> T getProxy(Invoker<T> invoker, Class<?>[] interfaces) {
         /**
-         * 创建动态代理 InvokerInvocationHandler 是对原来类的代理
+         * 创建动态代理 InvokerInvocationHandler 是对原来类的代理。  这边用于服务引用
          */
         return (T) Proxy.getProxy(interfaces).newInstance(new InvokerInvocationHandler(invoker));
     }
-
+    // 这边用于服务暴露
     public <T> Invoker<T> getInvoker(T proxy, Class<T> type, URL url) {
         // TODO Wrapper cannot handle this scenario correctly: the classname contains '$'
         // Wrapper类不能正确处理带$的类名
