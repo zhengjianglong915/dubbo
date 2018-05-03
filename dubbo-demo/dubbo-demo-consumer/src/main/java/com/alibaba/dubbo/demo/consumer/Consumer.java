@@ -34,14 +34,9 @@ public class Consumer {
         // 获取服务接口的代理对象, 该代理对象包装了Invoker
         DemoService demoService = (DemoService) context.getBean("demoService"); // get remote service proxy
 
-        ActionService actionService = (ActionService) context.getBean("actionService"); // get remote service proxy
-
         while (true) {
             try {
                 Thread.sleep(1000);
-                int ss = actionService.add(1, 5);
-                System.out.println(ss);
-
                 // 调用代理对象，代理对象将调用交给了Invoker
                 String hello = demoService.sayHello("world"); // call remote method
                 System.out.println(hello); // get result

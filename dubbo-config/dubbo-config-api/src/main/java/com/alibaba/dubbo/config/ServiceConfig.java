@@ -563,6 +563,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         if (logger.isInfoEnabled()) {
                             logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " to registry " + registryURL);
                         }
+                        //的url是dubbo://192.168.110.197:20880/dubbo.common.hello.service.HelloService?anyhost=true&application=dubbo-provider
+                        //&application.version=1.0&dubbo=2.5.3&environment=product&interface=dubbo.common.hello.service.HelloService&methods=sayHello&organization=china&owner=cheng.xi
+                        //&pid=28191&side=provider&timestamp=1489027396094
+
+
                         // 通过代理工厂获得一个调用者
                         // 关于proxyFactory实例，看下面的截图。默认SPI 名称为：javassist
                         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
@@ -592,11 +597,20 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void exportLocal(URL url) {
         if (!Constants.LOCAL_PROTOCOL.equalsIgnoreCase(url.getProtocol())) {
+            // 这时候转成本地暴露的url：injvm://127.0.0.1/dubbo.common.hello.service.HelloService?anyhost=true&
+            // application=dubbo-provider&application.version=1.0&dubbo=2.5.3&environment=product&
+            // interface=dubbo.common.hello.service.HelloService&methods=sayHello&
+            // organization=china&owner=cheng.xi&pid=720&side=provider&timestamp=1489716708276
             URL local = URL.valueOf(url.toFullString())
                     .setProtocol(Constants.LOCAL_PROTOCOL)
                     .setHost(LOCALHOST)
                     .setPort(0);
             ServiceClassHolder.getInstance().pushServiceClass(getServiceClass(ref)); // ref 是什么时候创建的
+
+            // 首先还是先获得Invoker
+            // 然后导出成Exporter，并缓存
+            // 这里的proxyFactory实际是JavassistProxyFactory
+            // 有关详细的获得Invoke以及exporter会在下面的流程解析，在本地暴露这个流程就不再说明。
             Exporter<?> exporter = protocol.export(
                     // 先创建代理对象
                     proxyFactory.getInvoker(ref, (Class) interfaceClass, local)); // StubProxyFactoryWrapper

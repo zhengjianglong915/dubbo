@@ -136,12 +136,14 @@ public class RegistryProtocol implements Protocol {
         // 导出本地调用
         final ExporterChangeableWrapper<T> exporter = doLocalExport(originInvoker);
 
+
         URL registryUrl = getRegistryUrl(originInvoker);
 
         //registry provider
         // 注册器提供者。
         // 假设使用zk，会通过ZookeeperRegistryFactory 获得 ZookeeperRegistry
         final Registry registry = getRegistry(originInvoker);
+        // 注册到注册中心的URL
         final URL registedProviderUrl = getRegistedProviderUrl(originInvoker);
 
         //to judge to delay publish whether or not
@@ -152,6 +154,9 @@ public class RegistryProtocol implements Protocol {
         if (register) {
             /**
              * 最终的注册动作
+             * 调用远端注册中心的register方法进行服务注册
+             * 若有消费者订阅此服务，则推送消息让消费者引用此服务。
+             * 注册中心缓存了所有提供者注册的服务以供消费者发现。
              */
             register(registryUrl, registedProviderUrl);
             ProviderConsumerRegTable.getProviderWrapper(originInvoker).setReg(true);
@@ -167,6 +172,8 @@ public class RegistryProtocol implements Protocol {
 
         /**
          * 订阅，并更新本地缓存
+         * 提供者向注册中心订阅所有注册服务的覆盖配置
+         * 当注册中心有此服务的覆盖配置注册进来时，推送消息给提供者，重新暴露服务，这由管理页面完成。
          */
         registry.subscribe(overrideSubscribeUrl, overrideSubscribeListener);
         //Ensure that a new exporter instance is returned every time export
@@ -212,6 +219,7 @@ public class RegistryProtocol implements Protocol {
 
     /**
      * Get an instance of registry based on the address of invoker
+     * 根据invoker的地址获取registry实例
      *
      * @param originInvoker
      * @return
@@ -222,9 +230,13 @@ public class RegistryProtocol implements Protocol {
     }
 
     private URL getRegistryUrl(Invoker<?> originInvoker) {
+        // 获取invoker中的registryUrl
         URL registryUrl = originInvoker.getUrl();
         if (Constants.REGISTRY_PROTOCOL.equals(registryUrl.getProtocol())) {
+            // 获取registry的值，这里获得是zookeeper，默认值是dubbo
             String protocol = registryUrl.getParameter(Constants.REGISTRY_KEY, Constants.DEFAULT_DIRECTORY);
+
+            // 根据SPI机制获取具体的Registry实例，这里获取到的是ZookeeperRegistry
             registryUrl = registryUrl.setProtocol(protocol).removeParameter(Constants.REGISTRY_KEY);
         }
         return registryUrl;
